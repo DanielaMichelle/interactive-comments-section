@@ -2,11 +2,13 @@ import styles from './styles/Response.module.css';
 import Image from 'next/image';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
 import { useState } from 'react';
+import { useComments, useCommentsLength } from '../contexts/CommentsContext'; 
 
-export default function Response({ comments, setComments, isResponse, addNewReply }) {
+export default function Response({ isResponse, addNewReply }) {
+    const { comments, setComments } = useComments();
     const [newComment, setNewComment] = useState('');
     const currentUser = useCurrentUser();
-    const [commentsLength, setCommentsLength] = useState(5);
+    const { commentsLength, setCommentsLength } = useCommentsLength(); 
     
     function addNewComment(e) {
         setComments(prevComments => [

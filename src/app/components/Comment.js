@@ -4,13 +4,18 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
 import Response from './Response.js';
+import { useComments, useCommentsLength} from '../contexts/CommentsContext.js';
+import DeleteModal from './DeleteModal.js';
 
-export default function Comment({ isReply, comment, comments, setComments }) {
+export default function Comment({ isReply, comment }) {
+    const { comments, setComments } = useComments();
+    const { commentsLength, setCommentsLength } = useCommentsLength();
 
+    const [ showDeleteModal, setShowDeleteModal ] = useState(false);
+    
     const [replyVisible, setReplyVisible] = useState(false);
     const [commentEdited, setCommentEdited] = useState(comment.content);   
     const [isEditing, setIsEditing] = useState(false); 
-    const [newReply, setNewReply] = useState('');
     const currentUser = useCurrentUser();
     const isCurrentUser = currentUser.username === comment.user.username;
 
@@ -83,6 +88,10 @@ export default function Comment({ isReply, comment, comments, setComments }) {
     }
 
     function handleDelete() {
+        setShowDeleteModal(true);
+    }
+
+    function deleteComment() {
         setComments(prevComments => {
             return !isReply ? 
             prevComments.filter(prevComment => prevComment.id !== comment.id)
@@ -108,7 +117,7 @@ export default function Comment({ isReply, comment, comments, setComments }) {
                     [
                         ...prevComment.replies, 
                         {
-                            id: 9,
+                            id: commentsLength + 1,
                             content: newReply,
                             createdAt: 'now',
                             score: 0,
@@ -122,6 +131,7 @@ export default function Comment({ isReply, comment, comments, setComments }) {
             })
         })  
         setReplyVisible(false); 
+        setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
     }
 
     return (
@@ -221,7 +231,8 @@ export default function Comment({ isReply, comment, comments, setComments }) {
             }
             
         </div>
-        {replyVisible && <Response comments={comments} setComments={setComments} isResponse={true} addNewReply={addNewReply}/>}
+        {replyVisible && <Response isResponse={true} addNewReply={addNewReply}/>}
+        {showDeleteModal && <DeleteModal deleteComment={deleteComment} setShowDeleteModal={setShowDeleteModal}/>}
     </>
     );
 }

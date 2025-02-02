@@ -1,0 +1,58 @@
+.deleteModal__background {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.deleteModal {
+    background-color: var(--White);
+    border-radius: 8px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    color: var(--Dark-blue);
+    width: 380px;
+}
+
+.deleteModal h2 {
+    font-weight: 500;
+}
+
+.deleteModal p {
+    color: var(--Grayish-Blue);
+    margin-bottom: 4px;
+}
+
+.deleteModal__buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.deleteModal__buttons button {
+    padding: 12px;
+    text-transform: uppercase;
+    color: var(--White);
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.cancelBtn {
+    background-color: var(--Grayish-Blue);
+    border: 1px solid var(--Grayish-Blue);
+    width: 50%;
+}
+
+.deleteBtn {
+    background-color: var(--Soft-Red);
+    border: 1px solid var(--Soft-Red);
+    width: 50%;
+}
