@@ -2,70 +2,130 @@
 import styles from './styles/Comment.module.css';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useCurrentUser } from '../contexts/CurrentUserContext.js';
+import Response from './Response.js';
 
-export default function Comment({ isReply, comment, data, setData }) {
-    const isCurrentUser = data.currentUser.username === comment.user.username;
-    const [isEditing, setIsEditing] = useState(false);
+export default function Comment({ isReply, comment, comments, setComments }) {
 
+    const [replyVisible, setReplyVisible] = useState(false);
+    const [commentEdited, setCommentEdited] = useState(comment.content);   
+    const [isEditing, setIsEditing] = useState(false); 
+    const [newReply, setNewReply] = useState('');
+    const currentUser = useCurrentUser();
+    const isCurrentUser = currentUser.username === comment.user.username;
+
+    console.log(comments);
+    
     function plusScore() {
-        setData(prevData => ({
-            ...prevData,
-            comments: prevData.comments.map(prevComment =>{
-                return !isReply ? 
-                (prevComment.id === comment.id ? {...prevComment, score: prevComment.score + 1} : prevComment)
-                :
-                ({
+        setComments(prevComments => {
+            return !isReply ?
+            prevComments.map(prevComment => {
+                return ({
                     ...prevComment,
-                    replies: prevComment.replies.map(reply => {
-                        return reply.id === comment.id ? {...reply, score: reply.score + 1} : reply;
-                    })
+                    score: prevComment.id === comment.id ? prevComment.score + 1 : prevComment.score
                 })
-
-
             })
-        }));
+            :
+            prevComments.map(prevComment => {
+                return {
+                    ...prevComment,
+                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score + 1}) : reply)
+                }
+                
+            })
+            
+        });
     }
 
     function minusScore() {
-        setData(prevData => ({
-            ...prevData,
-            comments: prevData.comments.map(prevComment =>{
-                return !isReply ? 
-                (prevComment.id === comment.id && prevComment.score > 0 ? {...prevComment, score: prevComment.score - 1} : prevComment)
-                :
-                ({
+        setComments(prevComments => {
+            return !isReply ?
+            prevComments.map(prevComment => {
+                return ({
                     ...prevComment,
-                    replies: prevComment.replies.map(reply => {
-                        return reply.id === comment.id && reply.score > 0 ? {...reply, score: reply.score - 1} : reply;
-                    })
-                })
-
-
-            })
-        }));
-    }
-
-    function handleChange(e) {
-        setData(
-            prevData => ({
-                ...prevData,
-                comments: prevData.comments.map(prevComment => {
-                    if(prevComment.id === comment.id) {
-                        return ({...prevComment, content: e.target.value})
-                    } else {
-                        return (prevComment)
-                    }
+                    score: prevComment.id === comment.id ? prevComment.score - 1 : prevComment.score
                 })
             })
-        );
-        console.log("data", data.comments);
+            :
+            prevComments.map(prevComment => {
+                return {
+                    ...prevComment,
+                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score - 1}) : reply)
+                }
+                
+            })
+            
+        });
     }
 
     function handleEdit() {
         setIsEditing(true);
     }
 
+    function updateComment(e) {
+        setComments(prevComments => {
+            return !isReply ?
+            prevComments.map(prevComment => {
+                return ({
+                    ...prevComment,
+                    content: prevComment.id === comment.id ? commentEdited : prevComment.content
+                })
+            })
+            :
+            prevComments.map(prevComment => {
+                return {
+                    ...prevComment,
+                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, content: commentEdited}) : reply)
+                }
+            })
+        });
+        setIsEditing(false);
+    }
+
+    function handleDelete() {
+        setComments(prevComments => {
+            return !isReply ? 
+            prevComments.filter(prevComment => prevComment.id !== comment.id)
+            :
+            prevComments.map(prevComment => {
+                return ({
+                    ...prevComment,
+                    replies: prevComment.replies.filter(reply => reply.id !== comment.id)
+                })
+            })
+        });
+    }
+
+    function handleReply() {
+        setReplyVisible(true);
+    }
+
+    function addNewReply(newReply) {   
+        setComments(prevComments => {
+            return prevComments.map(prevComment => {
+                return prevComment.id === comment.id ? 
+                ({...prevComment, replies: 
+                    [
+                        ...prevComment.replies, 
+                        {
+                            id: 9,
+                            content: newReply,
+                            createdAt: 'now',
+                            score: 0,
+                            replyingTo: comment.user.username,
+                            user: currentUser,
+                            replies: []
+                        }
+                    ]}) 
+                : 
+                prevComment
+            })
+        })  
+        setReplyVisible(false); 
+    }
+
     return (
+    <>
         <div className={styles.comment}>
             {/* Reactions */}
             <div className={styles.comment__reactions}>
@@ -101,8 +161,8 @@ export default function Comment({ isReply, comment, data, setData }) {
 
             {/*  Buttons */}
             <div className={styles.comment__buttons}>
-                {!isCurrentUser ? 
-                    <button className={styles.reply}>
+                {(!isCurrentUser && !isReply) &&
+                    <button onClick={handleReply} className={styles.reply}>
                         <Image 
                             src='/images/icon-reply.svg'
                             alt='Reply'
@@ -110,9 +170,11 @@ export default function Comment({ isReply, comment, data, setData }) {
                             height={12}
                         />
                         Reply
-                    </button>:
+                    </button>
+                }
+                {isCurrentUser &&
                     <>
-                        <button className={styles.delete}>
+                        <button onClick={handleDelete} className={styles.delete}>
                             <Image 
                                 src='/images/icon-delete.svg'
                                 alt='Edit'
@@ -147,17 +209,19 @@ export default function Comment({ isReply, comment, data, setData }) {
             {/* Form */}
             {(isCurrentUser && isEditing) &&
                 (<form onSubmit={e => e.preventDefault()} className={styles.comment__form}>
-                    <input 
-                        onChange={handleChange}
+                    <textarea 
+                        onChange={(e) => setCommentEdited(e.target.value)}
                         type='text'
                         name='content'
-                        value={comment.content}
+                        value={commentEdited}
                     >   
-                    </input>
-                    <button>update</button>
+                    </textarea>
+                    <button onClick={updateComment}>update</button>
                 </form>)
             }
             
         </div>
+        {replyVisible && <Response comments={comments} setComments={setComments} isResponse={true} addNewReply={addNewReply}/>}
+    </>
     );
 }

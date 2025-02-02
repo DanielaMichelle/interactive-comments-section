@@ -1,6 +1,7 @@
 .comment {
     display: grid;
-    grid-template-columns: repeat(3, auto);
+    /* grid-template-columns: repeat(3, auto); */
+    grid-template-columns: 1fr 6fr 4fr;
     grid-template-rows: repeat(2, auto);
     grid-template-areas: 
         "reactions userInfo buttons"
@@ -129,16 +130,21 @@
     margin-top: 16px;
 }
 
-.comment__form input {
+.comment__form textarea {
     width: 100%;
     border: 1px solid var(--Moderate-blue);
     padding: 8px 16px;
     border-radius: 8px;
-    font-weight: 500;
     color: var(--Dark-blue);
     font-size: 16px;
     background-color: var(--Very-light-gray);
-    
+    outline: none;
+    height: 120px;
+    font-family: "Rubik", serif;
+    font-weight: 400;
+    cursor: pointer;
+    caret-color: var(--Moderate-blue);
+    background-color: var(--White);
 }
 
 .comment__form button {
@@ -150,4 +156,10 @@
     border: 1px solid var(--Moderate-blue);
     padding: 8px 16px;
     border-radius: 8px;
+    cursor: pointer;
+}
+
+.comment__form button:hover {
+    background-color: var(--Light-grayish-blue);
+    border-color: var(--Light-grayish-blue);
 }

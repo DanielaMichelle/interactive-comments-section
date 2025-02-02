@@ -1,17 +1,16 @@
 "use client";
 import styles from './styles/CommentsSection.module.css';
 import Post from './Post';
-import Data from '../../../public/data.json';
 import { useState } from 'react';
+import Response from './Response.js';
 
-export default function CommentsSection() {
-    const [data, setData] = useState(Data);
-    
-    const commentPosts = data.comments.map(comment => <Post key={comment.id} comment={comment} data={data} setData={setData}/>);
-    
+export default function CommentsSection({ comments, setComments }) {
+    const commentPosts = comments.map(comment => <Post key={comment.id} comment={comment} comments={comments} setComments={setComments}/>);
+
     return (
        <section className={styles.commentsSection}>
            {commentPosts}
+           <Response comments={comments} setComments={setComments} isResponse={false} />
        </section>
     );
 }
