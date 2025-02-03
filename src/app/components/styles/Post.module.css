@@ -7,3 +7,10 @@
     gap: 16px;
     border-left: 2px solid var(--Light-gray);
 }
+
+@media (max-width: 640px) {
+    .commentPost__replies {
+        margin-left: 0;
+        padding-left: 10px;
+    }
+}

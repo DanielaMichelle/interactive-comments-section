@@ -3,64 +3,79 @@ import styles from './styles/Comment.module.css';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
+import { useComments, useCommentsDispatch, useCommentsLength} from '../contexts/CommentsContext.js';
 import Response from './Response.js';
-import { useComments, useCommentsLength} from '../contexts/CommentsContext.js';
 import DeleteModal from './DeleteModal.js';
 
 export default function Comment({ isReply, comment }) {
-    const { comments, setComments } = useComments();
+    // CommentsContext
+    const comments = useComments();
+    const dispatchComments = useCommentsDispatch(); 
     const { commentsLength, setCommentsLength } = useCommentsLength();
 
-    const [ showDeleteModal, setShowDeleteModal ] = useState(false);
-    
-    const [replyVisible, setReplyVisible] = useState(false);
-    const [commentEdited, setCommentEdited] = useState(comment.content);   
-    const [isEditing, setIsEditing] = useState(false); 
+    // CurrentUserContext
     const currentUser = useCurrentUser();
     const isCurrentUser = currentUser.username === comment.user.username;
+
+    // State
+    const [ showDeleteModal, setShowDeleteModal ] = useState(false);
+    const [ replyVisible, setReplyVisible ] = useState(false);
+    const [ commentEdited, setCommentEdited ] = useState(comment.content);   
+    const [ isEditing, setIsEditing ] = useState(false); 
+
 
     console.log(comments);
     
     function plusScore() {
-        setComments(prevComments => {
-            return !isReply ?
-            prevComments.map(prevComment => {
-                return ({
-                    ...prevComment,
-                    score: prevComment.id === comment.id ? prevComment.score + 1 : prevComment.score
-                })
-            })
-            :
-            prevComments.map(prevComment => {
-                return {
-                    ...prevComment,
-                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score + 1}) : reply)
-                }
+        dispatchComments({
+            type: 'INCREMENT_SCORE',
+            comment: comment,
+            isReply: isReply
+        })
+        // setComments(prevComments => {
+        //     return !isReply ?
+        //     prevComments.map(prevComment => {
+        //         return ({
+        //             ...prevComment,
+        //             score: prevComment.id === comment.id ? prevComment.score + 1 : prevComment.score
+        //         })
+        //     })
+        //     :
+        //     prevComments.map(prevComment => {
+        //         return {
+        //             ...prevComment,
+        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score + 1}) : reply)
+        //         }
                 
-            })
+        //     })
             
-        });
+        // });
     }
 
     function minusScore() {
-        setComments(prevComments => {
-            return !isReply ?
-            prevComments.map(prevComment => {
-                return ({
-                    ...prevComment,
-                    score: prevComment.id === comment.id ? prevComment.score - 1 : prevComment.score
-                })
-            })
-            :
-            prevComments.map(prevComment => {
-                return {
-                    ...prevComment,
-                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score - 1}) : reply)
-                }
+        dispatchComments({
+            type: 'DECREMENT_SCORE',
+            comment: comment,
+            isReply: isReply
+        })
+        // setComments(prevComments => {
+        //     return !isReply ?
+        //     prevComments.map(prevComment => {
+        //         return ({
+        //             ...prevComment,
+        //             score: prevComment.id === comment.id ? prevComment.score - 1 : prevComment.score
+        //         })
+        //     })
+        //     :
+        //     prevComments.map(prevComment => {
+        //         return {
+        //             ...prevComment,
+        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score - 1}) : reply)
+        //         }
                 
-            })
+        //     })
             
-        });
+        // });
     }
 
     function handleEdit() {
@@ -68,22 +83,28 @@ export default function Comment({ isReply, comment }) {
     }
 
     function updateComment(e) {
-        setComments(prevComments => {
-            return !isReply ?
-            prevComments.map(prevComment => {
-                return ({
-                    ...prevComment,
-                    content: prevComment.id === comment.id ? commentEdited : prevComment.content
-                })
-            })
-            :
-            prevComments.map(prevComment => {
-                return {
-                    ...prevComment,
-                    replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, content: commentEdited}) : reply)
-                }
-            })
-        });
+        dispatchComments({
+            type: 'UPDATE_COMMENT',
+            comment: comment,
+            isReply: isReply,
+            commentEdited: commentEdited
+        })
+        // setComments(prevComments => {
+        //     return !isReply ?
+        //     prevComments.map(prevComment => {
+        //         return ({
+        //             ...prevComment,
+        //             content: prevComment.id === comment.id ? commentEdited : prevComment.content
+        //         })
+        //     })
+        //     :
+        //     prevComments.map(prevComment => {
+        //         return {
+        //             ...prevComment,
+        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, content: commentEdited}) : reply)
+        //         }
+        //     })
+        // });
         setIsEditing(false);
     }
 
@@ -92,46 +113,61 @@ export default function Comment({ isReply, comment }) {
     }
 
     function deleteComment() {
-        setComments(prevComments => {
-            return !isReply ? 
-            prevComments.filter(prevComment => prevComment.id !== comment.id)
-            :
-            prevComments.map(prevComment => {
-                return ({
-                    ...prevComment,
-                    replies: prevComment.replies.filter(reply => reply.id !== comment.id)
-                })
-            })
-        });
+        dispatchComments({
+            type: 'DELETE_COMMENT',
+            comment: comment,
+            isReply: isReply
+
+        })
+        // setComments(prevComments => {
+        //     return !isReply ? 
+        //     prevComments.filter(prevComment => prevComment.id !== comment.id)
+        //     :
+        //     prevComments.map(prevComment => {
+        //         return ({
+        //             ...prevComment,
+        //             replies: prevComment.replies.filter(reply => reply.id !== comment.id)
+        //         })
+        //     })
+        // });
     }
 
     function handleReply() {
         setReplyVisible(true);
     }
 
-    function addNewReply(newReply) {   
-        setComments(prevComments => {
-            return prevComments.map(prevComment => {
-                return prevComment.id === comment.id ? 
-                ({...prevComment, replies: 
-                    [
-                        ...prevComment.replies, 
-                        {
-                            id: commentsLength + 1,
-                            content: newReply,
-                            createdAt: 'now',
-                            score: 0,
-                            replyingTo: comment.user.username,
-                            user: currentUser,
-                            replies: []
-                        }
-                    ]}) 
-                : 
-                prevComment
-            })
-        })  
+    function addNewReply(newReply) { 
+        if(newReply !== '') {
+            dispatchComments({
+                type: 'ADD_REPLY',
+                comment: comment,
+                commentsLength: commentsLength,
+                newReply: newReply,
+                currentUser: currentUser
+            })  
+            setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
+        }
+        // setComments(prevComments => {
+        //     return prevComments.map(prevComment => {
+        //         return prevComment.id === comment.id ? 
+        //         ({...prevComment, replies: 
+        //             [
+        //                 ...prevComment.replies, 
+        //                 {
+        //                     id: commentsLength + 1,
+        //                     content: newReply,
+        //                     createdAt: 'now',
+        //                     score: 0,
+        //                     replyingTo: comment.user.username,
+        //                     user: currentUser,
+        //                     replies: []
+        //                 }
+        //             ]}) 
+        //         : 
+        //         prevComment
+        //     })
+        // })  
         setReplyVisible(false); 
-        setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
     }
 
     return (

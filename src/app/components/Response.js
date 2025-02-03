@@ -2,27 +2,26 @@ import styles from './styles/Response.module.css';
 import Image from 'next/image';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
 import { useState } from 'react';
-import { useComments, useCommentsLength } from '../contexts/CommentsContext'; 
+import { useComments, useCommentsDispatch, useCommentsLength } from '../contexts/CommentsContext'; 
+import { Playwrite_CA } from 'next/font/google';
 
 export default function Response({ isResponse, addNewReply }) {
-    const { comments, setComments } = useComments();
+    const dispatchComments = useCommentsDispatch();
     const [newComment, setNewComment] = useState('');
     const currentUser = useCurrentUser();
     const { commentsLength, setCommentsLength } = useCommentsLength(); 
     
-    function addNewComment(e) {
-        setComments(prevComments => [
-            ...prevComments,
-            {
-                id: commentsLength + 1,
-                content: newComment,
-                createdAt: 'now',
-                score: 0,
-                user: currentUser,
-                replies: []
-            }
-        ]);
-        setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
+    function addNewComment() {
+        if(newComment !== '') {
+            dispatchComments({
+                type: 'ADD_COMMENT',
+                commentsLength: commentsLength,
+                newComment: newComment,
+                currentUser: currentUser
+            })
+            setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
+            setNewComment('');
+        }
     }
 
     return(
@@ -39,6 +38,8 @@ export default function Response({ isResponse, addNewReply }) {
                     type="text"
                     name='content'
                     onChange={(e) => setNewComment(e.target.value)}
+                    value={newComment}
+                    placeholder={!isResponse ? 'Add a comment...': ''}
                 >
                 </textarea>
                 {isResponse ? <button onClick={() => addNewReply(newComment)}>Reply</button> : <button onClick={addNewComment}>Send</button>}

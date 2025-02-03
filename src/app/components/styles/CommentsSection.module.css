@@ -4,3 +4,9 @@
     flex-direction: column;
     gap: 16px;
 }
+
+@media (max-width: 640px) {
+    .commentsSection {
+        width: 95%;
+    }
+}

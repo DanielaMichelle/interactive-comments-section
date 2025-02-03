@@ -18,7 +18,7 @@
 
 .response__form textarea {
     width: 85%;
-    border: 1px solid var(--Moderate-blue);
+    border: 1.5px solid var(--Light-grayish-blue);
     padding: 8px 16px;
     border-radius: 8px;
     color: var(--Dark-blue);
@@ -31,6 +31,10 @@
     cursor: pointer;
     caret-color: var(--Moderate-blue);
     background-color: var(--White);
+}
+
+.response__form textarea:active {
+    border-color: var(--Moderate-blue);
 }
 
 .response__form button {
@@ -50,4 +54,24 @@
 .response__form button:hover {
     background-color: var(--Light-grayish-blue);
     border-color: var(--Light-grayish-blue);
+}
+
+@media (max-width: 640px) {
+    .response {
+        position: relative;
+    }
+
+    .response img {
+        position: absolute;
+        bottom: 22px;
+    }
+
+    .response__form {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .response__form textarea {
+        width: 100%;
+    }
 }

@@ -163,3 +163,26 @@
     background-color: var(--Light-grayish-blue);
     border-color: var(--Light-grayish-blue);
 }
+
+@media (max-width: 640px) {
+    .comment {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(3, auto);
+        grid-template-areas: 
+        "userInfo userInfo "
+        "text text"
+        "reactions buttons ";
+        gap: 16px;
+    }
+
+    .comment__reactions {
+        flex-direction: row;
+        width: max-content;
+        padding: 2px 12px;
+        gap: 16px;
+    }
+
+    .comment__text {
+        padding-top: 0;
+    }
+}
