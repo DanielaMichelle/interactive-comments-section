@@ -2,24 +2,17 @@ import styles from './styles/Response.module.css';
 import Image from 'next/image';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
 import { useState } from 'react';
-import { useComments, useCommentsDispatch, useCommentsLength } from '../contexts/CommentsContext'; 
-import { Playwrite_CA } from 'next/font/google';
+import { useDispatch } from 'react-redux';
+import { addComment } from '../../../store/commentsSlice';
 
 export default function Response({ isResponse, addNewReply }) {
-    const dispatchComments = useCommentsDispatch();
+    const dispatch = useDispatch();
     const [newComment, setNewComment] = useState('');
     const currentUser = useCurrentUser();
-    const { commentsLength, setCommentsLength } = useCommentsLength(); 
     
     function addNewComment() {
         if(newComment !== '') {
-            dispatchComments({
-                type: 'ADD_COMMENT',
-                commentsLength: commentsLength,
-                newComment: newComment,
-                currentUser: currentUser
-            })
-            setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
+            dispatch(addComment({newComment: newComment, currentUser: currentUser}));
             setNewComment('');
         }
     }

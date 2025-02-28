@@ -3,15 +3,14 @@ import styles from './styles/Comment.module.css';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useCurrentUser } from '../contexts/CurrentUserContext.js';
-import { useComments, useCommentsDispatch, useCommentsLength} from '../contexts/CommentsContext.js';
 import Response from './Response.js';
 import DeleteModal from './DeleteModal.js';
+import { useDispatch } from 'react-redux';
+import { addReply, deleteComment, updateComment, incrementScore, decrementScore } from '../../../store/commentsSlice.js';
 
-export default function Comment({ isReply, comment }) {
-    // CommentsContext
-    const comments = useComments();
-    const dispatchComments = useCommentsDispatch(); 
-    const { commentsLength, setCommentsLength } = useCommentsLength();
+export default function Comment({ isReply, comment }) {  
+    // Dispatch redux
+    const dispatch = useDispatch();
 
     // CurrentUserContext
     const currentUser = useCurrentUser();
@@ -23,113 +22,12 @@ export default function Comment({ isReply, comment }) {
     const [ commentEdited, setCommentEdited ] = useState(comment.content);   
     const [ isEditing, setIsEditing ] = useState(false); 
 
-
-    console.log(comments);
-    
-    function plusScore() {
-        dispatchComments({
-            type: 'INCREMENT_SCORE',
-            comment: comment,
-            isReply: isReply
-        })
-        // setComments(prevComments => {
-        //     return !isReply ?
-        //     prevComments.map(prevComment => {
-        //         return ({
-        //             ...prevComment,
-        //             score: prevComment.id === comment.id ? prevComment.score + 1 : prevComment.score
-        //         })
-        //     })
-        //     :
-        //     prevComments.map(prevComment => {
-        //         return {
-        //             ...prevComment,
-        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score + 1}) : reply)
-        //         }
-                
-        //     })
-            
-        // });
-    }
-
-    function minusScore() {
-        dispatchComments({
-            type: 'DECREMENT_SCORE',
-            comment: comment,
-            isReply: isReply
-        })
-        // setComments(prevComments => {
-        //     return !isReply ?
-        //     prevComments.map(prevComment => {
-        //         return ({
-        //             ...prevComment,
-        //             score: prevComment.id === comment.id ? prevComment.score - 1 : prevComment.score
-        //         })
-        //     })
-        //     :
-        //     prevComments.map(prevComment => {
-        //         return {
-        //             ...prevComment,
-        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, score: reply.score - 1}) : reply)
-        //         }
-                
-        //     })
-            
-        // });
-    }
-
     function handleEdit() {
         setIsEditing(true);
     }
 
-    function updateComment(e) {
-        dispatchComments({
-            type: 'UPDATE_COMMENT',
-            comment: comment,
-            isReply: isReply,
-            commentEdited: commentEdited
-        })
-        // setComments(prevComments => {
-        //     return !isReply ?
-        //     prevComments.map(prevComment => {
-        //         return ({
-        //             ...prevComment,
-        //             content: prevComment.id === comment.id ? commentEdited : prevComment.content
-        //         })
-        //     })
-        //     :
-        //     prevComments.map(prevComment => {
-        //         return {
-        //             ...prevComment,
-        //             replies: prevComment.replies.map(reply => reply.id === comment.id ? ({...reply, content: commentEdited}) : reply)
-        //         }
-        //     })
-        // });
-        setIsEditing(false);
-    }
-
     function handleDelete() {
         setShowDeleteModal(true);
-    }
-
-    function deleteComment() {
-        dispatchComments({
-            type: 'DELETE_COMMENT',
-            comment: comment,
-            isReply: isReply
-
-        })
-        // setComments(prevComments => {
-        //     return !isReply ? 
-        //     prevComments.filter(prevComment => prevComment.id !== comment.id)
-        //     :
-        //     prevComments.map(prevComment => {
-        //         return ({
-        //             ...prevComment,
-        //             replies: prevComment.replies.filter(reply => reply.id !== comment.id)
-        //         })
-        //     })
-        // });
     }
 
     function handleReply() {
@@ -138,35 +36,8 @@ export default function Comment({ isReply, comment }) {
 
     function addNewReply(newReply) { 
         if(newReply !== '') {
-            dispatchComments({
-                type: 'ADD_REPLY',
-                comment: comment,
-                commentsLength: commentsLength,
-                newReply: newReply,
-                currentUser: currentUser
-            })  
-            setCommentsLength(prevCommentsLength => prevCommentsLength + 1);
+            dispatch(addReply({comment: comment, newReply: newReply, currentUser: currentUser}));
         }
-        // setComments(prevComments => {
-        //     return prevComments.map(prevComment => {
-        //         return prevComment.id === comment.id ? 
-        //         ({...prevComment, replies: 
-        //             [
-        //                 ...prevComment.replies, 
-        //                 {
-        //                     id: commentsLength + 1,
-        //                     content: newReply,
-        //                     createdAt: 'now',
-        //                     score: 0,
-        //                     replyingTo: comment.user.username,
-        //                     user: currentUser,
-        //                     replies: []
-        //                 }
-        //             ]}) 
-        //         : 
-        //         prevComment
-        //     })
-        // })  
         setReplyVisible(false); 
     }
 
@@ -176,7 +47,7 @@ export default function Comment({ isReply, comment }) {
             {/* Reactions */}
             <div className={styles.comment__reactions}>
                 <Image 
-                    onClick={plusScore}
+                    onClick={() => dispatch(incrementScore({isReply: isReply, comment: comment}))}
                     src='/images/icon-plus.svg'
                     alt='Plus'
                     width={12}
@@ -184,7 +55,7 @@ export default function Comment({ isReply, comment }) {
                 />
                 <span>{comment.score}</span>
                 <Image 
-                    onClick={minusScore}
+                    onClick={() => dispatch(decrementScore({isReply: isReply, comment: comment}))}
                     src='/images/icon-minus.svg'
                     alt='Minus'
                     width={12}
@@ -252,7 +123,7 @@ export default function Comment({ isReply, comment }) {
                 </div>)
             }
 
-            {/* Form */}
+            {/* Form to update comment */}
             {(isCurrentUser && isEditing) &&
                 (<form onSubmit={e => e.preventDefault()} className={styles.comment__form}>
                     <textarea 
@@ -262,13 +133,16 @@ export default function Comment({ isReply, comment }) {
                         value={commentEdited}
                     >   
                     </textarea>
-                    <button onClick={updateComment}>update</button>
+                    <button onClick={() => {
+                        dispatch(updateComment({isReply: isReply, comment: comment, commentEdited: commentEdited}))
+                        setIsEditing(false);
+                    }}>update</button>
                 </form>)
             }
             
         </div>
         {replyVisible && <Response isResponse={true} addNewReply={addNewReply}/>}
-        {showDeleteModal && <DeleteModal deleteComment={deleteComment} setShowDeleteModal={setShowDeleteModal}/>}
+        {showDeleteModal && <DeleteModal deleteComment={() => dispatch(deleteComment({isReply: isReply, comment: comment}))} setShowDeleteModal={setShowDeleteModal}/>}
     </>
     );
 }
